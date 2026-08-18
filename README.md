@@ -41,6 +41,33 @@ curl -X POST http://127.0.0.1:8000/model/load \
 
 The feature width is a function of the one-hot cardinality of the user/item data in Redis, so this
 checkpoint only fits the Douban dataset. Against a different dataset, retrain rather than reusing it.
+It predates feature spaces, which is why `dim` has to be passed by hand here.
+
+## trained artifacts
+
+`rec-algorithm` persists what it trains into this repo, so a model is trained once and reused rather
+than regenerated on every run. Artifacts are filed per scene, which keeps them clear of the Douban
+checkpoint above:
+
+```
+rank/lr.pth                          # Douban, pre-trained, 63 features
+rank/{scene}/lr.pth                  # trained state_dict
+feature/{scene}/lr.features.json     # the feature space it was trained with
+```
+
+`lr.features.json` records the column order, one-hot categories, tag vocabulary and scaler statistics
+of the training data. `rank-engine` reads it to size the model and to encode Redis the same way, so
+`dim` does not have to be supplied and online scoring cannot drift from training:
+
+```shell
+curl -X POST http://127.0.0.1:8000/model/load \
+  -H 'Content-Type: application/json' \
+  -d '{"type": "lr", "model": "model/rank/default/lr.pth"}'
+```
+
+Write them with `LRRecModel(..., scene="douban_movie").load_or_train()`, which trains and saves on
+the first call and loads on every later one. `OPENREC_MODEL_HOME` overrides the location of this
+store — needed when `rec-algorithm` is installed as a wheel and cannot find the repo by path.
 
 ## importing the recall data
 
