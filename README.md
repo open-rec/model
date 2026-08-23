@@ -18,8 +18,7 @@ CSVs in the format `example/init` expects, ready to load into Redis / Elasticsea
 | `recall/new.csv` | 2,000 | 49 KB | `scene,item,score` |
 
 `i2i.csv` covers 57,321 distinct `left_item` values. `embedding.csv` vectors are **10-dimensional**,
-matching the `dense_vector` mapping in
-[recall-engine](https://github.com/open-rec/recall-engine/blob/main/es/design.md).
+matching the sample Elasticsearch `dense_vector` mapping consumed by `rec-server`'s embedding node.
 
 ```
 douban_movie,1458424,5218551,0.047553931074042384
