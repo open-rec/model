@@ -1,110 +1,50 @@
-# model
+# OpenRec deployable artifacts
 
-Pre-computed recall tables and a trained rank model for the **Douban** open dataset, produced by
-[rec-algorithm](https://github.com/open-rec/rec-algorithm). Import them into a running open-rec
-stack instead of training from scratch.
+This repository is the deployable output cache for OpenRec. Raw inputs belong in
+`example/data/<dataset>/{user,item,event}.csv`; recall tables, fitted feature spaces, entity feature
+snapshots and rank checkpoints belong here.
 
-Everything here is for a single scene: `douban_movie`.
-
-## recall
-
-CSVs in the format `example/init` expects, ready to load into Redis / Elasticsearch.
-
-| File | Rows | Size | Columns |
-|---|---|---|---|
-| `recall/i2i.csv` | 1,067,972 | 54 MB | `scene,left_item,right_item,score` |
-| `recall/embedding.csv` | 37,844 | 9.0 MB | `scene,item,vector` |
-| `recall/hot.csv` | 2,000 | 82 KB | `scene,item,score` |
-| `recall/new.csv` | 2,000 | 49 KB | `scene,item,score` |
-
-`i2i.csv` covers 57,321 distinct `left_item` values. `embedding.csv` vectors are **10-dimensional**,
-matching the sample Elasticsearch `dense_vector` mapping consumed by `rec-server`'s embedding node.
-
-```
-douban_movie,1458424,5218551,0.047553931074042384
-douban_movie,27010768,"[-0.12139896303415298, 0.30065250396728516, ...]"
+```text
+default.manifest.json                  # raw-input and output SHA-256 contract
+feature/default/
+├── user_feature.csv                   # point-in-time values imported into feature:user:{id}
+├── item_feature.csv                   # point-in-time values imported into feature:item:{id}
+├── lr.features.json                   # fitted LR encoding contract
+└── fm.features.json                   # fitted FM encoding contract
+rank/default/
+├── lr.pth
+├── lr.manifest.json
+├── fm.pth
+└── fm.manifest.json
+recall/
+├── i2i.csv
+├── embedding.csv
+├── hot.csv
+└── new.csv
 ```
 
-## rank
+`*.features.json` defines model-specific column order, vocabularies, scaling and input dimension. It
+is loaded as a file by rank-engine and is not written to Redis. The two feature CSVs hold actual
+entity values; `InitStandalone` converts their `event_*` columns into the same JSON snapshot shape
+used by the streaming data-processor.
 
-`rank/lr.pth` — a logistic regression `state_dict` saved with `torch.save`, 63 input features.
+## Build and reuse
 
-Load it into [rank-engine](https://github.com/open-rec/rank-engine); `dim` must match the feature
-width it was trained with:
+Both example modes run `example/scripts/ensure-model-artifacts.sh`. It hashes the three raw CSVs and
+reuses this bundle only when every required output exists and its hash matches
+`default.manifest.json`. Otherwise it invokes:
 
 ```shell
-curl -X POST http://127.0.0.1:8000/model/load \
-  -H 'Content-Type: application/json' \
-  -d '{"type": "lr", "model": "model/lr.pth", "dim": 63}'
+python -m tool.build_default_artifacts \
+  --data /path/to/example/data/test \
+  --model-root /path/to/model
 ```
 
-The feature width is a function of the one-hot cardinality of the user/item data in Redis, so this
-checkpoint only fits the Douban dataset. Against a different dataset, retrain rather than reusing it.
-It predates feature spaces, which is why `dim` has to be passed by hand here.
+The build uses the first 80% of event time as frozen feature history and the final 20% as rank
+labels. A clicked impression's preceding expose remains in feature history but is not treated as a
+negative training label. Training restores the best temporal-validation checkpoint and both LR and
+FM must pass AUC 0.70 before the bundle is atomically promoted. Recall
+generation produces I2I, semantic-hash embedding, hot and new tables from the same inputs.
 
-## trained artifacts
-
-`rec-algorithm` persists what it trains into this repo, so a model is trained once and reused rather
-than regenerated on every run. Artifacts are filed per scene, which keeps them clear of the Douban
-checkpoint above:
-
-```
-rank/lr.pth                          # Douban, pre-trained, 63 features
-rank/{scene}/lr.pth                  # trained state_dict
-feature/{scene}/lr.features.json     # the feature space it was trained with
-```
-
-`lr.features.json` records the column order, one-hot categories, tag vocabulary and scaler statistics
-of the training data. `rank-engine` reads it to size the model and to encode Redis the same way, so
-`dim` does not have to be supplied and online scoring cannot drift from training:
-
-```shell
-curl -X POST http://127.0.0.1:8000/model/load \
-  -H 'Content-Type: application/json' \
-  -d '{"type": "lr", "model": "model/rank/default/lr.pth"}'
-```
-
-Write them with `LRRecModel(..., scene="douban_movie").load_or_train()`, which trains and saves on
-the first call and loads on every later one. `OPENREC_MODEL_HOME` overrides the location of this
-store — needed when `rec-algorithm` is installed as a wheel and cannot find the repo by path.
-
-## importing the recall data
-
-`InitStandalone` reads a data directory containing `item.csv`, `user.csv`, `event.csv` and a
-`recall/` subdirectory. This repo supplies **only the `recall/` part** — the raw `item` / `user` /
-`event` tables for Douban are not included (too large for git), so you cannot seed a full stack from
-this repo alone.
-
-To use these tables, place them alongside the raw Douban CSVs and point the loader at that directory:
-
-```
-example/data/douban/
-├── item.csv          # not provided here
-├── user.csv          # not provided here
-├── event.csv         # not provided here
-└── recall/           # <- the four files from this repo
-    ├── i2i.csv
-    ├── hot.csv
-    ├── new.csv
-    └── embedding.csv
-```
-
-```shell
-cd example
-java -cp init/target/rec-example-init-1.0-SNAPSHOT-jar-with-dependencies.jar \
-  com.openrec.example.InitStandalone 127.0.0.1 6379 127.0.0.1 9200 elastic '<es-password>' data/douban
-```
-
-For a runnable end-to-end setup without hunting for the Douban raw tables, use the generated sample
-dataset in `example/data/test` instead — it ships with its own `recall/` tables and covers scenes
-`scene_0` … `scene_2`.
-
-## regenerating
-
-```shell
-cd rec-algorithm/tool
-python gen_recall_data.py     # writes ../data/<scene>/recall/*.csv
-```
-
-`gen_recall_data.py` has the hot / new / embedding generators commented out by default — only i2i
-runs. Enable the ones you need before running it.
+Cluster-produced defaults may overwrite standalone defaults. The manifest makes this safe: a
+bundle computed from another raw dataset is stale rather than silently reused.

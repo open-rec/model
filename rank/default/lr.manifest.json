@@ -1,0 +1,24 @@
+{
+  "catalog_version": 1,
+  "created_at": "2026-08-25T09:12:41.519908+00:00",
+  "feature": "lr.features.json",
+  "feature_cutoff_time": 1787098340,
+  "feature_set": "ranking-lr-v1",
+  "feature_sha256": "727763ba47dd7978c367013e38dc8f2744abb2127216afb4844f6459628dda22",
+  "gate": {
+    "min_auc": 0.7,
+    "passed": true
+  },
+  "input_dim": 322,
+  "metrics": {
+    "auc": 0.8134165014840218,
+    "feature_dim": 322,
+    "positive_rate": 0.13193365931510925,
+    "samples": 19957
+  },
+  "model": "lr.pth",
+  "model_type": "lr",
+  "scene": "default",
+  "status": "evaluated",
+  "version": "default"
+}
