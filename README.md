@@ -17,10 +17,12 @@ rank/default/
 ├── fm.pth
 └── fm.manifest.json
 recall/
-├── i2i.csv
-├── embedding.csv
+├── content_i2i.csv
+├── item_cf_i2i.csv
+├── item_seq_emb.csv
 ├── hot.csv
-└── new.csv
+├── new.csv
+└── user_cf_u2i.csv
 ```
 
 `*.features.json` defines model-specific column order, vocabularies, scaling and input dimension. It
@@ -44,7 +46,8 @@ The build uses the first 80% of event time as frozen feature history and the fin
 labels. A clicked impression's preceding expose remains in feature history but is not treated as a
 negative training label. Training restores the best temporal-validation checkpoint and both LR and
 FM must pass AUC 0.70 before the bundle is atomically promoted. Recall
-generation produces I2I, semantic-hash embedding, hot and new tables from the same inputs.
+generation produces `item_cf_i2i`, `content_i2i`, `user_cf_u2i`, semantic-hash `item_seq_emb`, hot, and new
+tables from the same inputs.
 
 Cluster-produced defaults may overwrite standalone defaults. The manifest makes this safe: a
 bundle computed from another raw dataset is stale rather than silently reused.

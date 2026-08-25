@@ -1,6 +1,6 @@
 {
-  "build_version": 2,
-  "created_at": "2026-08-25T09:12:50.578948+00:00",
+  "build_version": 4,
+  "created_at": "2026-08-25T13:02:04+00:00",
   "feature_cutoff_time": 1787098340,
   "inputs": {
     "event.csv": "1a87235df272c18bae51f49d1522141403954df354724a25acffc97d0d4c8eff",
@@ -16,10 +16,12 @@
     "rank/default/fm.pth": "5022503dd5e7b43b5bf2af6b6d3292f96519c90b831e286a06bf1ec92a447c9c",
     "rank/default/lr.manifest.json": "1fe54c19fd83e4231efd39dcbb8d733603c7e6d0a9fd6b0176c3c9835fa8e1e6",
     "rank/default/lr.pth": "02de85d3cef170e8e3f204456c75969fe6e3be6247024c1ba3af6d801e355344",
-    "recall/embedding.csv": "569932cbbcbe98ab44aa8ed873f48107defa864b66c5c54473b8b87c3db75bc0",
+    "recall/item_seq_emb.csv": "569932cbbcbe98ab44aa8ed873f48107defa864b66c5c54473b8b87c3db75bc0",
+    "recall/content_i2i.csv": "3a2926578110f577d56e0f9daf29f009a950a22c5552044de24addd154d0b364",
     "recall/hot.csv": "5078fc08e6c1f8bd36ef9179f0cd629acdfe98d1bccd6567eda92ab3e7fd80c3",
-    "recall/i2i.csv": "34389825639d36d11eff94a9f7afc06323674ea5d31b51abbede11641001af0f",
-    "recall/new.csv": "48469326183255e14f73c69bea6a4d16b8dab9eda75b5716743f33afbe371842"
+    "recall/item_cf_i2i.csv": "34389825639d36d11eff94a9f7afc06323674ea5d31b51abbede11641001af0f",
+    "recall/new.csv": "48469326183255e14f73c69bea6a4d16b8dab9eda75b5716743f33afbe371842",
+    "recall/user_cf_u2i.csv": "ef0094731dd3b0b58292ed4d54fff15d1f3cf8e883816acc844d59603812eabd"
   },
   "schema_version": 1,
   "source": "rec-algorithm/tool/build_default_artifacts.py"
