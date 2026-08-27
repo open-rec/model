@@ -1,5 +1,9 @@
 # OpenRec deployable artifacts
 
+[![CI](https://github.com/open-rec/model/actions/workflows/ci.yml/badge.svg)](https://github.com/open-rec/model/actions/workflows/ci.yml)
+![Manifest](https://img.shields.io/badge/manifest_schema-v1-4C1?logo=json&logoColor=white)
+![Models](https://img.shields.io/badge/rank_artifacts-PyTorch-EE4C2C?logo=pytorch&logoColor=white)
+
 This repository is the deployable output cache for OpenRec. Raw inputs belong in
 `example/data/<dataset>/{user,item,event}.csv`; recall tables, fitted feature spaces, entity feature
 snapshots and rank checkpoints belong here.
