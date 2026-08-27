@@ -8,6 +8,9 @@ This repository is the deployable output cache for OpenRec. Raw inputs belong in
 `example/data/<dataset>/{user,item,event}.csv`; recall tables, fitted feature spaces, entity feature
 snapshots and rank checkpoints belong here.
 
+Treat these files as generated, versioned artifacts. Do not hand-edit checkpoints, feature-space
+sidecars, manifests, or large recall tables; regenerate and validate the complete bundle instead.
+
 ```text
 default.manifest.json                  # raw-input and output SHA-256 contract
 feature/default/
