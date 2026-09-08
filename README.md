@@ -13,12 +13,21 @@ sidecars, manifests, or large recall tables; regenerate and validate the complet
 
 ```text
 default.manifest.json                  # raw-input and output SHA-256 contract
-feature/default/
+feature/item/
 ├── user_feature.csv                   # point-in-time values imported into feature:user:{id}
 ├── item_feature.csv                   # point-in-time values imported into feature:item:{id}
 ├── lr.features.json                   # fitted LR encoding contract
 └── fm.features.json                   # fitted FM encoding contract
-rank/default/
+feature/user/
+├── user_feature.csv
+├── lr.features.json
+└── fm.features.json
+rank/item/
+├── lr.pth
+├── lr.manifest.json
+├── fm.pth
+└── fm.manifest.json
+rank/user/
 ├── lr.pth
 ├── lr.manifest.json
 ├── fm.pth
@@ -51,8 +60,11 @@ python -m tool.build_default_artifacts \
 
 The build uses the first 80% of event time as frozen feature history and the final 20% as rank
 labels. A clicked impression's preceding expose remains in feature history but is not treated as a
-negative training label. Training restores the best temporal-validation checkpoint and both LR and
-FM must pass AUC 0.70 before the bundle is atomically promoted. Recall
+negative training label. User ranking derives positives from users sharing positive item behaviour
+and balances them with non-cooccurring user pairs. Both sides use the persisted UserFeature space;
+the sidecar's `target_type` tells serving whether candidate vectors are Item or User vectors.
+Training restores the best temporal-validation checkpoint and Item LR/FM must pass AUC 0.70 before
+the bundle is atomically promoted. Recall
 generation produces `item_cf_i2i`, `content_i2i`, `user_cf_u2i`, semantic-hash `item_seq_emb`, hot, and new
 tables from the same inputs.
 

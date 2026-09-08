@@ -1,17 +1,17 @@
 {
   "catalog_version": 1,
-  "created_at": "2026-08-25T09:12:49.538474+00:00",
+  "created_at": "2026-09-08T12:24:41.596168+00:00",
   "feature": "fm.features.json",
   "feature_cutoff_time": 1787098340,
   "feature_set": "ranking-fm-v1",
-  "feature_sha256": "af1efc8093ce4d45e1222379350557c76e2791393c9a320488e59c7b511683c4",
+  "feature_sha256": "9b3a76fec4ab1ef8ced628a71e516f178c5a11a58c0620ac95e183b9c4dc1052",
   "gate": {
     "min_auc": 0.7,
     "passed": true
   },
   "input_dim": 322,
   "metrics": {
-    "auc": 0.7907833328089441,
+    "auc": 0.7822987131485385,
     "factor_dim": 8,
     "feature_dim": 322,
     "positive_rate": 0.13193365931510925,
@@ -19,7 +19,8 @@
   },
   "model": "fm.pth",
   "model_type": "fm",
-  "scene": "default",
+  "scene": "item",
   "status": "evaluated",
+  "target_type": "item",
   "version": "default"
 }
