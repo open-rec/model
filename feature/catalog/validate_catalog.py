@@ -2,6 +2,7 @@
 """Validate the canonical catalog without third-party dependencies."""
 
 import json
+import hashlib
 import re
 from pathlib import Path
 
@@ -21,6 +22,7 @@ def fail(message):
 
 def main():
     catalog = json.loads(CATALOG_PATH.read_text())
+    catalog_sha256 = hashlib.sha256(CATALOG_PATH.read_bytes()).hexdigest()
     if catalog.get("schema_version") != 1:
         fail("unsupported schema_version")
     if not isinstance(catalog.get("catalog_version"), int) or catalog["catalog_version"] < 1:
@@ -69,6 +71,16 @@ def main():
             fail("%s uses catalog_version %s, expected %s" % (
                 path.relative_to(ROOT), sidecar.get("catalog_version"),
                 catalog["catalog_version"]))
+        if sidecar.get("catalog_sha256") != catalog_sha256:
+            fail("%s uses a missing or different catalog_sha256" % path.relative_to(ROOT))
+        manifest_path = path.with_name(path.name.replace(".features.json", ".manifest.json"))
+        if manifest_path.exists():
+            manifest = json.loads(manifest_path.read_text())
+            for field, expected in (("catalog_version", catalog["catalog_version"]),
+                                    ("catalog_sha256", catalog_sha256)):
+                if manifest.get(field) != expected:
+                    fail("%s uses a missing or different %s" % (
+                        manifest_path.relative_to(ROOT), field))
     missing = sorted(referenced - feature_ids)
     if missing:
         fail("model sidecars reference unknown features: " + ", ".join(missing))

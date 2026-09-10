@@ -28,3 +28,8 @@ The four feature layers are deliberately separate:
 Run `python feature/catalog/validate_catalog.py` before publishing a change. The validator checks
 the catalog structure and ensures every feature referenced by the checked-in fitted rank sidecars
 exists in the catalog.
+
+Run `python feature/catalog/publish_catalog.py` after an approved catalog change. It creates the
+self-contained copies packaged by rec-algorithm and data-processor; `--check` is the CI drift gate.
+Every feature space, model manifest, and realtime snapshot carries both `catalog_version` and the
+exact `catalog_sha256`, so equal version numbers cannot hide divergent definitions.

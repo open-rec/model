@@ -1,10 +1,11 @@
 {
+  "catalog_sha256": "5242b870f64cec3a688efe5830ff6579a4c0ba87b94e43f5e1a82e83c53ab408",
   "catalog_version": 1,
   "created_at": "2026-09-08T12:24:41.596168+00:00",
   "feature": "fm.features.json",
   "feature_cutoff_time": 1787098340,
   "feature_set": "ranking-fm-v1",
-  "feature_sha256": "9b3a76fec4ab1ef8ced628a71e516f178c5a11a58c0620ac95e183b9c4dc1052",
+  "feature_sha256": "45cd6b5120a03323172311b349c69c5143ee32a4c53dee54d0d7c17b2d27b13a",
   "gate": {
     "min_auc": 0.7,
     "passed": true

@@ -1,10 +1,11 @@
 {
+  "catalog_sha256": "5242b870f64cec3a688efe5830ff6579a4c0ba87b94e43f5e1a82e83c53ab408",
   "catalog_version": 1,
   "created_at": "2026-09-08T12:24:38.131822+00:00",
   "feature": "lr.features.json",
   "feature_cutoff_time": 1787098340,
   "feature_set": "ranking-lr-v1",
-  "feature_sha256": "76a3acd165b13547fdf3df8eddba0990a5eeea74a97734347b8c106696629961",
+  "feature_sha256": "9aa4215c6947f91997d7e3b59556acac853afbecceef6487622bbb76ca1d2e20",
   "gate": {
     "min_auc": 0.7,
     "passed": true

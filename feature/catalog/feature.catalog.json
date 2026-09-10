@@ -66,4 +66,3 @@
     {"id":"item.event_click_rate","definition_version":1,"entity":"item","group":"behavior","name":"event_click_rate","description":"Item click count divided by click plus expose count, or zero when the denominator is zero.","value_type":"float64","shape":"scalar","source":{"logical_entity":"event","group_by":"item_id"},"aggregation":{"operator":"derived","expression":"event_click_count / (event_click_count + event_expose_count)","zero_denominator":0},"policy":"event_behavior_v1","default":0,"materialization":{"online":true,"offline":true,"backfillable":true},"status":"stable"}
   ]
 }
-
