@@ -1,5 +1,5 @@
 {
-  "build_version": 5,
+  "build_version": 6,
   "created_at": "2026-09-08T12:26:29.340543+00:00",
   "feature_cutoff_time": 1787098340,
   "inputs": {
@@ -8,13 +8,13 @@
     "user.csv": "ce41c960ec3e9e9bf2f7d12e9f1b3805ed33da4cb041dc7ecb5fd173b638026e"
   },
   "outputs": {
-    "feature/item/fm.features.json": "9b3a76fec4ab1ef8ced628a71e516f178c5a11a58c0620ac95e183b9c4dc1052",
-    "feature/item/item_feature.csv": "1a2a08dcd069d6d2f6c8df76049bbbe9e429c801d1de94029e95e1f33447a46a",
-    "feature/item/lr.features.json": "76a3acd165b13547fdf3df8eddba0990a5eeea74a97734347b8c106696629961",
-    "feature/item/user_feature.csv": "0baaca0fb2a2ff74f1e2b2c0b3b81b0a208ad96624c2f8e359fedf94145f0dd1",
-    "feature/user/fm.features.json": "b3bf75e76308c958069fc740a2374145cdfeffdc06139600b944a44f38cf87f1",
-    "feature/user/lr.features.json": "bee0476c404f12dc39bbbba8c2da7270b3a8807ef157a79ca879d855e87ca8f5",
-    "feature/user/user_feature.csv": "0baaca0fb2a2ff74f1e2b2c0b3b81b0a208ad96624c2f8e359fedf94145f0dd1",
+    "rank/item/fm.features.json": "9b3a76fec4ab1ef8ced628a71e516f178c5a11a58c0620ac95e183b9c4dc1052",
+    "rank/item/item_feature.csv": "1a2a08dcd069d6d2f6c8df76049bbbe9e429c801d1de94029e95e1f33447a46a",
+    "rank/item/lr.features.json": "76a3acd165b13547fdf3df8eddba0990a5eeea74a97734347b8c106696629961",
+    "rank/item/user_feature.csv": "0baaca0fb2a2ff74f1e2b2c0b3b81b0a208ad96624c2f8e359fedf94145f0dd1",
+    "rank/user/fm.features.json": "b3bf75e76308c958069fc740a2374145cdfeffdc06139600b944a44f38cf87f1",
+    "rank/user/lr.features.json": "bee0476c404f12dc39bbbba8c2da7270b3a8807ef157a79ca879d855e87ca8f5",
+    "rank/user/user_feature.csv": "0baaca0fb2a2ff74f1e2b2c0b3b81b0a208ad96624c2f8e359fedf94145f0dd1",
     "rank/item/fm.manifest.json": "6daed27bba40bcc6c8ddc81d827e2b6518f2fbc6f75467c59aac49698f40f713",
     "rank/item/fm.pth": "eb7a5ff5128f85cadd3280f62da89ba31d608196d97d2a0e3d344539695cc73f",
     "rank/item/lr.manifest.json": "242e52c43ba80a5fbe5b7098df2e2d7efd36054e856dd2df1abe90adcfb4e84c",

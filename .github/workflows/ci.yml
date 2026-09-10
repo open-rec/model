@@ -18,6 +18,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+      - name: Validate canonical feature catalog
+        run: python feature/catalog/validate_catalog.py
       - name: Validate manifests and artifact checksums
         shell: python
         run: |

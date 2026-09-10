@@ -1,0 +1,30 @@
+# OpenRec feature catalog
+
+This directory is the implementation-independent registry of features that rank models may use.
+It defines the meaning of a feature, not how a particular model encodes it and not how Flink,
+Spark, pandas, Redis, or PyTorch computes or stores it.
+
+The four feature layers are deliberately separate:
+
+1. `feature.catalog.json` defines canonical logical features and their stable semantics.
+2. A model feature set selects an ordered subset of catalog feature ids.
+3. `rank/{item,user}/*.features.json` records the fitted encoding for one model family,
+   including vocabularies and normalization statistics.
+4. `*_feature.csv` contains point-in-time feature values.
+
+## Compatibility rules
+
+- A feature id always has one meaning. Change `definition_version` and introduce a new id when a
+  change affects values, including its source field, filter, aggregation, window, time boundary,
+  deduplication, null/default behavior, or exact-versus-approximate semantics.
+- Model-specific transforms such as normalization, clipping, bucketization, hashing, vocabulary,
+  embedding size, and feature crosses do not belong in this catalog.
+- Storage keys, engine state, watermark implementation, SQL, and physical table names do not
+  belong in this catalog. `materialization` only declares whether the same logical value is
+  expected to be available online and/or offline.
+- Catalog membership does not require every model to consume a feature. Each rank model selects an
+  ordered subset and publishes that selection with its fitted feature space.
+
+Run `python feature/catalog/validate_catalog.py` before publishing a change. The validator checks
+the catalog structure and ensures every feature referenced by the checked-in fitted rank sidecars
+exists in the catalog.

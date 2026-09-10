@@ -8,30 +8,35 @@ This repository is the deployable output cache for OpenRec. Raw inputs belong in
 `example/data/<dataset>/{user,item,event}.csv`; recall tables, fitted feature spaces, entity feature
 snapshots and rank checkpoints belong here.
 
-Treat these files as generated, versioned artifacts. Do not hand-edit checkpoints, feature-space
-sidecars, manifests, or large recall tables; regenerate and validate the complete bundle instead.
+Treat deployable model files as generated, versioned artifacts. Do not hand-edit checkpoints,
+feature-space sidecars, manifests, feature-value snapshots, or large recall tables; regenerate and
+validate the complete bundle instead. The canonical catalog is reviewed source metadata and is
+updated through its compatibility rules and validator.
 
 ```text
 default.manifest.json                  # raw-input and output SHA-256 contract
-feature/item/
-├── user_feature.csv                   # point-in-time values imported into feature:user:{id}
-├── item_feature.csv                   # point-in-time values imported into feature:item:{id}
-├── lr.features.json                   # fitted LR encoding contract
-└── fm.features.json                   # fitted FM encoding contract
-feature/user/
-├── user_feature.csv
-├── lr.features.json
-└── fm.features.json
+feature/catalog/
+├── feature.catalog.json               # implementation-independent canonical feature registry
+├── catalog.schema.json                # machine-readable catalog format
+├── validate_catalog.py                # catalog and fitted-sidecar compatibility validation
+└── README.md                           # ownership and compatibility rules
 rank/item/
 ├── lr.pth
 ├── lr.manifest.json
 ├── fm.pth
-└── fm.manifest.json
+├── fm.manifest.json
+├── lr.features.json                   # fitted LR encoding contract
+├── fm.features.json                   # fitted FM encoding contract
+├── user_feature.csv                   # point-in-time user values for this rank release
+└── item_feature.csv                   # point-in-time candidate values for this rank release
 rank/user/
 ├── lr.pth
 ├── lr.manifest.json
 ├── fm.pth
-└── fm.manifest.json
+├── fm.manifest.json
+├── lr.features.json
+├── fm.features.json
+└── user_feature.csv
 recall/
 ├── content_i2i.csv
 ├── item_cf_i2i.csv
@@ -41,10 +46,20 @@ recall/
 └── user_cf_u2i.csv
 ```
 
-`*.features.json` defines model-specific column order, vocabularies, scaling and input dimension. It
-is loaded as a file by rank-engine and is not written to Redis. The two feature CSVs hold actual
-entity values; `InitStandalone` converts their `event_*` columns into the same JSON snapshot shape
-used by the streaming data-processor.
+Each `rank/{target_type}` directory is a self-contained default rank release. Its `*.features.json`
+defines model-specific column order, vocabularies, scaling and input dimension and is loaded as a
+file by rank-engine. Its feature CSVs hold actual entity values; `InitStandalone` converts their
+`event_*` columns into the same JSON snapshot shape used by the streaming data-processor.
+
+`feature/catalog/feature.catalog.json` is the implementation-independent source of truth for the
+logical features available to rank models. It defines stable meaning, time, identity, invalid-input,
+aggregation, and materialization semantics. A rank model selects an ordered subset and keeps its
+model-specific encoding in `*.features.json`; fitted vocabularies and normalization statistics do
+not belong in the global catalog. Validate changes with:
+
+```shell
+python feature/catalog/validate_catalog.py
+```
 
 ## Build and reuse
 
