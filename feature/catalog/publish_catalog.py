@@ -43,7 +43,7 @@ def main():
         for path in FIXTURE_TARGETS:
             path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(PARITY_FIXTURE, path)
-    print("catalog_version=1 catalog_sha256=" + expected)
+    print("catalog_version=2 catalog_sha256=" + expected)
 
 
 if __name__ == "__main__":
