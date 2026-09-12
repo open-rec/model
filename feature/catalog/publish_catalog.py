@@ -18,6 +18,8 @@ TARGETS = (
 FIXTURE_TARGETS = (
     WORKSPACE / "rec-algorithm/algorithm/feature/definitions/event-feature-parity.json",
     WORKSPACE / "data-processor/feature-core/src/test/resources/event-feature-parity.json",
+    WORKSPACE / "data-processor/flink/src/test/resources/event-feature-parity.json",
+    WORKSPACE / "data-processor/spark/src/test/resources/event-feature-parity.json",
 )
 
 
