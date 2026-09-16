@@ -7,7 +7,8 @@ Spark, pandas, Redis, or PyTorch computes or stores it.
 The four feature layers are deliberately separate:
 
 1. `feature.catalog.json` defines canonical logical features and their stable semantics.
-2. A model feature set selects an ordered subset of catalog feature ids.
+2. rec-algorithm's `algorithm/feature/definitions/{lr,fm}.feature-set.json` declare supported
+   features and defaults; each training run selects an ordered subset through rec-console.
 3. `rank/{item,user}/*.features.json` records the fitted encoding for one model family,
    including vocabularies and normalization statistics.
 4. `*_feature.csv` contains point-in-time feature values.
@@ -31,5 +32,14 @@ exists in the catalog.
 
 Run `python feature/catalog/publish_catalog.py` after an approved catalog change. It creates the
 self-contained copies packaged by rec-algorithm and data-processor; `--check` is the CI drift gate.
-Every feature space, model manifest, and realtime snapshot carries both `catalog_version` and the
-exact `catalog_sha256`, so equal version numbers cannot hide divergent definitions.
+Catalog version and SHA-256 identify provenance in fitted spaces, model manifests and realtime
+snapshots. New fitted spaces also record fingerprints of the selected feature definitions:
+serving validates those definitions against its packaged catalog, allowing unrelated additions.
+Legacy fitted spaces retain whole-catalog validation. Realtime snapshot compatibility is checked
+separately; subset compatibility does not permit arbitrary producer schema changes.
+
+The catalog defines business values, not fitted vocabularies or model transforms. Runtime training
+releases keep their own selected subset and fitted encoders in the shared model artifact volume;
+they do not rewrite this catalog or the default artifacts in this repository. New feature semantics
+require coordinated catalog publication, producer implementation, backfill where needed, and
+online/offline verification before training and explicit deployment.

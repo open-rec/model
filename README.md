@@ -83,5 +83,35 @@ the bundle is atomically promoted. Recall
 generation produces `item_cf_i2i`, `content_i2i`, `user_cf_u2i`, semantic-hash `item_seq_emb`, hot, and new
 tables from the same inputs.
 
-Cluster-produced defaults may overwrite standalone defaults. The manifest makes this safe: a
-bundle computed from another raw dataset is stale rather than silently reused.
+Regenerating the default bundle from different raw inputs makes the old bundle stale according
+to its manifest. Routine cluster training does not overwrite these defaults or write back to Git.
+
+## Global features and runtime releases
+
+This repository has two roles: `feature/catalog` is reviewed source metadata, while `rank/` and
+`recall/` hold generated default artifacts. The packaged copies in rec-algorithm and data-processor
+must match the canonical catalog; check or synchronize them from this repository with:
+
+```shell
+python feature/catalog/publish_catalog.py --check
+# After changing and validating the canonical definitions:
+python feature/catalog/publish_catalog.py
+```
+
+rec-algorithm's `algorithm/feature/definitions/{lr,fm}.feature-set.json` declare each family's
+implemented capabilities and default feature selection. rec-console selects a supported subset
+for each training run. Feature engineering, new model adapters, historical backfills and aligned
+online/offline computation remain engineering work; selecting a feature does not implement it.
+
+The cluster training path is rec-console → Airflow → rec-algorithm Spark job → offline PyTorch
+trainer. Spark prepares samples distributively; LR/FM train on the offline driver CPU. Evaluated
+versions are written to the shared `openrec-model-artifacts` volume under
+`/models/releases/{target_type}/{scene}/{version}`, with weights, fitted encoders, feature
+selection, definition fingerprints, evaluation results and checksums. These runtime versions are
+separate from this repository's bootstrap models. Training can finish while rank-engine is stopped.
+
+Publication is an explicit rec-console operation; rank-engine only loads and scores the retained
+version. Training never activates a model automatically. Changing the selected features requires
+another training run. Moving training between services does not itself change feature semantics
+or artifact formats, so compatible default weights and fitted sidecars need not be regenerated.
+See [catalog compatibility rules](feature/catalog/README.md) before changing feature definitions.
