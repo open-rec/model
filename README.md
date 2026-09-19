@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/open-rec/model/actions/workflows/ci.yml/badge.svg)](https://github.com/open-rec/model/actions/workflows/ci.yml)
 ![Manifest](https://img.shields.io/badge/manifest_schema-v1-4C1?logo=json&logoColor=white)
-![Models](https://img.shields.io/badge/rank_artifacts-PyTorch-EE4C2C?logo=pytorch&logoColor=white)
+![Models](https://img.shields.io/badge/rank_artifacts-PyTorch%20%2B%20LightGBM-EE4C2C)
 
 This repository is the deployable output cache for OpenRec. Raw inputs belong in
 `example/data/<dataset>/{user,item,event}.csv`; recall tables, fitted feature spaces, entity feature
@@ -25,8 +25,11 @@ rank/item/
 ├── lr.manifest.json
 ├── fm.pth
 ├── fm.manifest.json
+├── lightgbm.txt
+├── lightgbm.manifest.json
 ├── lr.features.json                   # fitted LR encoding contract
 ├── fm.features.json                   # fitted FM encoding contract
+├── lightgbm.features.json             # fitted LightGBM encoding contract
 ├── user_feature.csv                   # point-in-time user values for this rank release
 └── item_feature.csv                   # point-in-time candidate values for this rank release
 rank/user/
@@ -34,8 +37,11 @@ rank/user/
 ├── lr.manifest.json
 ├── fm.pth
 ├── fm.manifest.json
+├── lightgbm.txt
+├── lightgbm.manifest.json
 ├── lr.features.json
 ├── fm.features.json
+├── lightgbm.features.json
 └── user_feature.csv
 recall/
 ├── content_i2i.csv
@@ -78,7 +84,7 @@ labels. A clicked impression's preceding expose remains in feature history but i
 negative training label. User ranking derives positives from users sharing positive item behaviour
 and balances them with non-cooccurring user pairs. Both sides use the persisted UserFeature space;
 the sidecar's `target_type` tells serving whether candidate vectors are Item or User vectors.
-Training restores the best temporal-validation checkpoint and Item LR/FM must pass AUC 0.70 before
+Training restores the best temporal-validation checkpoint and Item LR/FM/LightGBM must pass AUC 0.70 before
 the bundle is atomically promoted. Recall
 generation produces `item_cf_i2i`, `content_i2i`, `user_cf_u2i`, semantic-hash `item_seq_emb`, hot, and new
 tables from the same inputs.

@@ -1,25 +1,25 @@
 {
   "catalog_sha256": "89ff97fa05bb58b891ecc71fd5ac7e9012cb7779c76417c4f8ce60c2cd95e1ed",
   "catalog_version": 14,
-  "created_at": "2026-09-19T14:08:29.468379+00:00",
-  "feature": "fm.features.json",
+  "created_at": "2026-09-19T14:08:34.775360+00:00",
+  "feature": "lightgbm.features.json",
   "feature_cutoff_time": 1787098340,
-  "feature_set": "ranking-fm-v1",
-  "feature_sha256": "a141c1809e9b6faa48d292af61b81168d546ba00438c8ff4049748f6c8bcf38a",
+  "feature_set": "ranking-lightgbm-v1",
+  "feature_sha256": "2b5787bb5314bce43097512ba8154dd7c1364eeea618a4d398035d06459dd5f3",
   "gate": {
     "min_auc": 0.0,
     "passed": true
   },
   "input_dim": 484,
   "metrics": {
-    "auc": 0.9994277253574569,
-    "factor_dim": 8,
+    "auc": 0.999408606037056,
     "feature_dim": 484,
+    "n_estimators": 300,
     "positive_rate": 0.5,
     "samples": 81184
   },
-  "model": "fm.pth",
-  "model_type": "fm",
+  "model": "lightgbm.txt",
+  "model_type": "lightgbm",
   "scene": "user",
   "status": "evaluated",
   "target_type": "user",

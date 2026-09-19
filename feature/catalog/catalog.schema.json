@@ -9,6 +9,8 @@
     "schema_version": {"const": 1},
     "catalog_version": {"type": "integer", "minimum": 1},
     "description": {"type": "string", "minLength": 1},
+    "taxonomy": {"type": "object"},
+    "scene_presets": {"type": "object"},
     "policies": {
       "type": "object",
       "additionalProperties": {"$ref": "#/$defs/policy"}
@@ -37,14 +39,19 @@
                    "value_type", "shape", "source", "default", "materialization", "status"],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string", "pattern": "^(user|item|context|cross)\\.[a-z][a-z0-9_]*$"},
+        "id": {"type": "string", "pattern": "^(user|item|context|statistical|temporal|interaction)\\.[a-z][a-z0-9_]*$"},
         "definition_version": {"type": "integer", "minimum": 1},
-        "entity": {"enum": ["user", "item", "context", "cross"]},
-        "group": {"enum": ["profile", "behavior", "context", "cross"]},
+        "entity": {"enum": ["user", "item", "context", "interaction"]},
+        "group": {"enum": ["profile", "behavior", "content", "request", "request_candidate", "affinity", "experiment"]},
         "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
         "description": {"type": "string", "minLength": 1},
         "value_type": {"enum": ["boolean", "int64", "float64", "string"]},
-        "shape": {"enum": ["scalar", "categorical", "multi_value", "sequence", "vector"]},
+        "shape": {"enum": ["scalar", "categorical", "multi_value", "hashed_text"]},
+        "hash_dim": {"type": "integer", "minimum": 1},
+        "hash": {"type": "string", "minLength": 1},
+        "tokenizer": {"type": "string", "minLength": 1},
+        "family": {"type": "string", "minLength": 1},
+        "scenes": {"type": "array", "items": {"type": "string", "minLength": 1}},
         "source": {"type": "object", "required": ["logical_entity"], "additionalProperties": true},
         "aggregation": {"type": "object", "required": ["operator"], "additionalProperties": true},
         "policy": {"type": "string", "minLength": 1},
@@ -64,4 +71,3 @@
     }
   }
 }
-

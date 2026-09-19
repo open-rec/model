@@ -3,6 +3,7 @@
 
 import argparse
 import hashlib
+import json
 import shutil
 from pathlib import Path
 
@@ -45,7 +46,8 @@ def main():
         for path in FIXTURE_TARGETS:
             path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(PARITY_FIXTURE, path)
-    print("catalog_version=2 catalog_sha256=" + expected)
+    catalog_version = json.loads(CATALOG.read_text())["catalog_version"]
+    print("catalog_version=%s catalog_sha256=%s" % (catalog_version, expected))
 
 
 if __name__ == "__main__":

@@ -9,7 +9,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 CATALOG_PATH = Path(__file__).with_name("feature.catalog.json")
-ID_PATTERN = re.compile(r"^(user|item|context|cross)\.[a-z][a-z0-9_]*$")
+ID_PATTERN = re.compile(
+    r"^(user|item|context|statistical|temporal|interaction)\.[a-z][a-z0-9_]*$"
+)
+ENTITIES = {"user", "item", "context", "interaction"}
 REQUIRED = {
     "id", "definition_version", "entity", "group", "name", "description",
     "value_type", "shape", "source", "default", "materialization", "status",
@@ -45,8 +48,8 @@ def main():
         if feature_id in feature_ids:
             fail("duplicate feature id: " + feature_id)
         feature_ids.add(feature_id)
-        entity, name = feature_id.split(".", 1)
-        if feature["entity"] != entity or feature["name"] != name:
+        _, name = feature_id.split(".", 1)
+        if feature["entity"] not in ENTITIES or feature["name"] != name:
             fail("id/entity/name disagree for " + feature_id)
         if feature.get("policy") not in policies:
             fail("unknown policy for " + feature_id)
@@ -59,7 +62,12 @@ def main():
             fail("behavior feature lacks aggregation: " + feature_id)
 
     referenced = set()
-    for path in (ROOT / "rank").glob("*/*.features.json"):
+    sidecars = (
+        path
+        for target in ("item", "user")
+        for path in (ROOT / "rank" / target).glob("*.features.json")
+    )
+    for path in sidecars:
         sidecar = json.loads(path.read_text())
         for section in ("user", "item"):
             for column in sidecar.get(section, []):

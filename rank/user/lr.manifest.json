@@ -1,19 +1,19 @@
 {
-  "catalog_sha256": "3ce25a616a04eeec3fc07f2a1f7c56a8dbf8a47dac4598cca5fc4625a7869dc0",
-  "catalog_version": 2,
-  "created_at": "2026-09-12T06:25:13.371573+00:00",
+  "catalog_sha256": "89ff97fa05bb58b891ecc71fd5ac7e9012cb7779c76417c4f8ce60c2cd95e1ed",
+  "catalog_version": 14,
+  "created_at": "2026-09-19T14:07:59.539263+00:00",
   "feature": "lr.features.json",
   "feature_cutoff_time": 1787098340,
   "feature_set": "ranking-lr-v1",
-  "feature_sha256": "3825b7e9221896dad57a3e693e64fff1872a5f048a84f7a91781d6b86f9e9d08",
+  "feature_sha256": "8a575513b465d8878c321b6f2ef6cb349145fa705d86d47a4d33d432314ddf8e",
   "gate": {
     "min_auc": 0.0,
     "passed": true
   },
-  "input_dim": 472,
+  "input_dim": 484,
   "metrics": {
-    "auc": 0.999257305446803,
-    "feature_dim": 472,
+    "auc": 0.999417801519725,
+    "feature_dim": 484,
     "positive_rate": 0.5,
     "samples": 81184
   },
