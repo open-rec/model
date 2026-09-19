@@ -104,13 +104,13 @@ python feature/catalog/publish_catalog.py --check
 python feature/catalog/publish_catalog.py
 ```
 
-rec-algorithm's `algorithm/feature/definitions/{lr,fm}.feature-set.json` declare each family's
+rec-algorithm's `algorithm/feature/definitions/{lr,fm,lightgbm}.feature-set.json` declare each family's
 implemented capabilities and default feature selection. rec-console selects a supported subset
 for each training run. Feature engineering, new model adapters, historical backfills and aligned
 online/offline computation remain engineering work; selecting a feature does not implement it.
 
-The cluster training path is rec-console → Airflow → rec-algorithm Spark job → offline PyTorch
-trainer. Spark prepares samples distributively; LR/FM train on the offline driver CPU. Evaluated
+The cluster training path is rec-console → Airflow → rec-algorithm Spark job → offline trainer.
+Spark prepares samples distributively; LR/FM use PyTorch and LightGBM uses its native CPU learner. Evaluated
 versions are written to the shared `openrec-model-artifacts` volume under
 `/models/releases/{target_type}/{scene}/{version}`, with weights, fitted encoders, feature
 selection, definition fingerprints, evaluation results and checksums. These runtime versions are
