@@ -38,6 +38,7 @@ def main():
         fail("features must be a non-empty array")
 
     feature_ids = set()
+    definitions = {}
     for index, feature in enumerate(features):
         missing = REQUIRED - set(feature)
         if missing:
@@ -48,6 +49,7 @@ def main():
         if feature_id in feature_ids:
             fail("duplicate feature id: " + feature_id)
         feature_ids.add(feature_id)
+        definitions[feature_id] = feature
         _, name = feature_id.split(".", 1)
         if feature["entity"] not in ENTITIES or feature["name"] != name:
             fail("id/entity/name disagree for " + feature_id)
@@ -75,14 +77,35 @@ def main():
                 if not feature_id:
                     fail("%s has an unregistered %s column" % (path.relative_to(ROOT), section))
                 referenced.add(feature_id)
-        if sidecar.get("catalog_version") != catalog["catalog_version"]:
-            fail("%s uses catalog_version %s, expected %s" % (
-                path.relative_to(ROOT), sidecar.get("catalog_version"),
-                catalog["catalog_version"]))
-        if sidecar.get("catalog_sha256") != catalog_sha256:
-            fail("%s uses a missing or different catalog_sha256" % path.relative_to(ROOT))
+        exact_catalog = (sidecar.get("catalog_version") == catalog["catalog_version"]
+                         and sidecar.get("catalog_sha256") == catalog_sha256)
+        fingerprints = sidecar.get("feature_definitions")
+        if not exact_catalog:
+            if not isinstance(fingerprints, dict) or not fingerprints:
+                fail("%s uses an older catalog without feature fingerprints" %
+                     path.relative_to(ROOT))
+            for feature_id, expected in fingerprints.items():
+                definition = dict(definitions.get(feature_id, {}))
+                kind = {
+                    "categorical": "id", "multi_value": "multi",
+                    "hashed_text": "hash",
+                }.get(definition.get("shape"))
+                if kind is None:
+                    kind = "bool" if definition.get("value_type") == "boolean" else "num"
+                definition["column"] = definition.get("name")
+                definition["kind"] = kind
+                definition.pop("description", None)
+                policy = policies.get(definition.get("policy"))
+                raw = json.dumps(
+                    {"definition": definition, "policy": policy},
+                    sort_keys=True, separators=(",", ":")
+                ).encode()
+                actual = hashlib.sha256(raw).hexdigest()
+                if actual != expected:
+                    fail("%s uses incompatible definition for %s" %
+                         (path.relative_to(ROOT), feature_id))
         manifest_path = path.with_name(path.name.replace(".features.json", ".manifest.json"))
-        if manifest_path.exists():
+        if manifest_path.exists() and exact_catalog:
             manifest = json.loads(manifest_path.read_text())
             for field, expected in (("catalog_version", catalog["catalog_version"]),
                                     ("catalog_sha256", catalog_sha256)):
