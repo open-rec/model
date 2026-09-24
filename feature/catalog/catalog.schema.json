@@ -39,9 +39,9 @@
                    "value_type", "shape", "source", "default", "materialization", "status"],
       "additionalProperties": false,
       "properties": {
-        "id": {"type": "string", "pattern": "^(user|item|context|statistical|temporal|interaction)\\.[a-z][a-z0-9_]*$"},
+        "id": {"type": "string", "pattern": "^(user|item|session|context|statistical|temporal|interaction)\\.[a-z][a-z0-9_]*$"},
         "definition_version": {"type": "integer", "minimum": 1},
-        "entity": {"enum": ["user", "item", "context", "interaction"]},
+        "entity": {"enum": ["user", "item", "session", "context", "interaction"]},
         "group": {"enum": ["profile", "behavior", "content", "request", "request_candidate", "affinity", "experiment"]},
         "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
         "description": {"type": "string", "minLength": 1},

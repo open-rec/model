@@ -10,9 +10,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CATALOG_PATH = Path(__file__).with_name("feature.catalog.json")
 ID_PATTERN = re.compile(
-    r"^(user|item|context|statistical|temporal|interaction)\.[a-z][a-z0-9_]*$"
+    r"^(user|item|session|context|statistical|temporal|interaction)\.[a-z][a-z0-9_]*$"
 )
-ENTITIES = {"user", "item", "context", "interaction"}
+ENTITIES = {"user", "item", "session", "context", "interaction"}
 REQUIRED = {
     "id", "definition_version", "entity", "group", "name", "description",
     "value_type", "shape", "source", "default", "materialization", "status",
