@@ -121,3 +121,13 @@ version. Training never activates a model automatically. Changing the selected f
 another training run. Moving training between services does not itself change feature semantics
 or artifact formats, so compatible default weights and fitted sidecars need not be regenerated.
 See [catalog compatibility rules](feature/catalog/README.md) before changing feature definitions.
+
+
+The committed default bundle may predate additive catalog updates. Passing
+`feature/catalog/validate_catalog.py` validates its selected definitions; it does
+not mean the whole bundle is current. The distribution's
+`ensure-model-artifacts.sh` checks catalog provenance, build version and input
+hashes before reuse. Bootstrap build version 11 selects only features actually
+materialized in the CSV snapshots and records that subset in model manifests;
+new session/context/commerce declarations are not silently trained as zeros.
+Regenerate defaults through that script instead of editing checkpoints or hashes.
