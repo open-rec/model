@@ -1,5 +1,7 @@
 # OpenRec deployable artifacts
 
+[Release v0.1.0](RELEASE_NOTES.md) · [Changelog](CHANGELOG.md)
+
 [![CI](https://github.com/open-rec/model/actions/workflows/ci.yml/badge.svg)](https://github.com/open-rec/model/actions/workflows/ci.yml)
 ![Manifest](https://img.shields.io/badge/manifest_schema-v1-4C1?logo=json&logoColor=white)
 ![Models](https://img.shields.io/badge/rank_artifacts-PyTorch%20%2B%20LightGBM-EE4C2C)
