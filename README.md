@@ -131,3 +131,17 @@ hashes before reuse. Bootstrap build version 11 selects only features actually
 materialized in the CSV snapshots and records that subset in model manifests;
 new session/context/commerce declarations are not silently trained as zeros.
 Regenerate defaults through that script instead of editing checkpoints or hashes.
+
+## Reproducing startup acceptance
+
+The distribution manifest does not check out this repository in CI: fresh runners generate the
+bootstrap bundle from `example/data/test`, whereas local startup may reuse a validated bundle.
+Matching input hashes does not imply that separately trained LR/FM checkpoints are byte-identical;
+the default builder fixes the validation split but does not fix all PyTorch training randomness.
+Record the bundle's output hashes when comparing local and CI recommendations.
+
+Final top-N membership can change across valid bundles. Recall availability is checked using
+rec-server's pre-selection `recallDiagnostics`, not by requiring all channel labels in the final
+results. Keep the failing bundle for regression checks instead of editing weights or recall tables
+to force particular items into the result. The Java 21 migration changes application/engine
+runtimes, not the requirement to deploy each model together with its matching feature sidecars.
