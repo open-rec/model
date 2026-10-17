@@ -209,7 +209,8 @@ CSV basenames and Airflow algorithm IDs use underscores. Airflow writes Hive tab
 
 Ordinary recall uses `openrec-recall-{tableName}-active`; sequence vectors use the per-scene
 `{scene}-item-seq-emb-index` alias. `query_title_emb` uses the global title-vector index and is
-scheduled by the default item daily DAG when the inference service is configured. Query and candidate vectors must share the exact model
+excluded from the default item daily DAG. GPU deployments can explicitly enable the
+query provider and add `query_title_emb` to the published DAG configuration. Query and candidate vectors must share the exact model
 and preprocessing recipe. User embedding serving consumes precomputed U2U edges, despite
 the graph node being named EmbeddingNode.
 
