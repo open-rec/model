@@ -9,7 +9,7 @@ The four feature layers are deliberately separate:
 1. `feature.catalog.json` defines canonical logical features and their stable semantics.
 2. rec-algorithm's `algorithm/feature/definitions/{lr,fm,lightgbm}.feature-set.json` declare supported
    features and defaults; each training run selects an ordered subset through rec-console.
-3. `rank/{item,user}/*.features.json` records the fitted encoding for one model family,
+3. `rank/{item,user}/{lr,fm,lightgbm}/*.features.json` records the fitted encoding for one model family,
    including vocabularies and normalization statistics.
 4. `*_feature.csv` contains point-in-time feature values.
 

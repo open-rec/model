@@ -67,7 +67,7 @@ def main():
     sidecars = (
         path
         for target in ("item", "user")
-        for path in (ROOT / "rank" / target).glob("*.features.json")
+        for path in (ROOT / "rank" / target).rglob("*.features.json")
     )
     for path in sidecars:
         sidecar = json.loads(path.read_text())

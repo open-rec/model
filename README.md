@@ -22,42 +22,68 @@ feature/catalog/
 ├── catalog.schema.json                # machine-readable catalog format
 ├── validate_catalog.py                # catalog and fitted-sidecar compatibility validation
 └── README.md                           # ownership and compatibility rules
-rank/item/
-├── lr.pth
-├── lr.manifest.json
-├── fm.pth
-├── fm.manifest.json
-├── lightgbm.txt
-├── lightgbm.manifest.json
-├── lr.features.json                   # fitted LR encoding contract
-├── fm.features.json                   # fitted FM encoding contract
-├── lightgbm.features.json             # fitted LightGBM encoding contract
-├── user_feature.csv                   # point-in-time user values for this rank release
-└── item_feature.csv                   # point-in-time candidate values for this rank release
-rank/user/
-├── lr.pth
-├── lr.manifest.json
-├── fm.pth
-├── fm.manifest.json
-├── lightgbm.txt
-├── lightgbm.manifest.json
-├── lr.features.json
-├── fm.features.json
-├── lightgbm.features.json
-└── user_feature.csv
-recall/
+rank/{item,user}/{lr,fm,lightgbm}/
+├── {model}.pth / lightgbm.txt          # model weights
+├── {model}.manifest.json              # evaluation and provenance
+├── {model}.features.json              # fitted encoding contract
+├── user_feature.csv                   # frozen user values for this model
+└── item_feature.csv                   # item targets only
+recall/item/
 ├── content_i2i.csv
 ├── item_cf_i2i.csv
+├── user_cf_u2i.csv                     # candidate items, despite user triggers
 ├── item_seq_emb.csv
+├── item_title_emb.csv                 # Qwen3 title vectors
+├── text_search.csv                    # scene,item,text BM25 documents
 ├── hot.csv
-├── new.csv
-└── user_cf_u2i.csv
+└── new.csv
+recall/user/
+├── user_cf_u2u.csv                     # scene,left_user,right_user,score
+├── content_u2u.csv                     # same U2U schema
+├── user_als_u2u.csv                    # scene,left_user,right_user,score
+├── user_als_emb.csv                   # scene,user,vector; local ALS factors
+└── text_search.csv                    # scene,user,text BM25 documents
 ```
 
-Each `rank/{target_type}` directory is a self-contained default rank release. Its `*.features.json`
-defines model-specific column order, vocabularies, scaling and input dimension and is loaded as a
-file by rank-engine. Its feature CSVs hold actual entity values; `InitStandalone` converts their
-`event_*` columns into the same JSON snapshot shape used by the streaming data-processor.
+Each `rank/{target_type}/{model_type}` directory is a self-contained default rank release.
+Its fitted sidecar defines column order, vocabularies, scaling and input dimension. Feature CSVs
+hold actual entity values; identical default snapshots are copied into each model release so future
+model-specific snapshots can evolve independently. `InitStandalone` uses the item LR snapshots.
+
+Recall directories are classified by **candidate entity**, not trigger type.
+The vector CSVs use the following algorithms:
+
+- `recall/item/item_title_emb.csv`: real language-model vectors;
+  the default is Qwen3-Embedding-0.6B (1024 dimensions). Query text must be encoded using
+  the same model/revision and query instruction; the reusable Python encoder is available,
+  but it is not yet connected to the rec-server request path; there is no fixed query CSV. The previous duplicate
+  hash-based item query CSV is removed.
+- `recall/user/user_als_emb.csv`: normalized 10-dimensional implicit-ALS user factors,
+  distinct from `user_als_u2u.csv`, which contains precomputed similar-user edges.
+
+For sequence recall, the existing bootstrap `item_seq_emb.csv` still uses its legacy hash fallback;
+the Spark sequence job uses Word2Vec. Correcting that separate bootstrap fallback is deferred.
+
+The Music CRS experiment uses `query_qwen_emb`: frozen Qwen3-Embedding-8B query and track
+vectors, last-token pooling, L2 normalization and 4096 dimensions. Its graph node reads
+`{scene}-query_qwen_emb-index`, which must contain matching Qwen candidate vectors before
+sending Qwen requests. The bootstrap title vectors use Qwen3-Embedding-0.6B (1024D), so they cannot
+be mixed with the experiment's Qwen3-Embedding-8B (4096D) index. Historical experiment caches keep their
+upstream `query_embeddings.npy` filenames. `text_search.csv` files contain searchable documents.
+
+Layout build version 18 requires companion updates to rec-algorithm's builder/checker,
+example's initializer/startup checks, and rank-engine's Compose bootstrap paths. Existing verified
+v11/v12/v13/v14/v15/v16/v17 bundles can migrate without changing rank weights or evaluation records:
+
+```shell
+cd ../rec-algorithm
+.venv/bin/python -m tool.migrate_default_layout --data ../example/data/test --model-root ../model
+```
+
+Migration validates input/output checksums, stages and validates the complete new bundle, then
+promotes it and removes only obsolete manifest-listed files. The already removed Qwen-only
+manifest is accepted as missing during migration and is dropped from the output inventory. Recall CSVs are generated from raw
+inputs; do not edit them or their checksums by hand. Full rebuilds use the same v18 layout.
 
 `feature/catalog/feature.catalog.json` is the implementation-independent source of truth for the
 logical features available to rank models. It defines stable meaning, time, identity, invalid-input,
@@ -71,6 +97,11 @@ python feature/catalog/validate_catalog.py
 
 ## Build and reuse
 
+The Qwen title-vector CSV uses Git LFS. After cloning, run `git lfs install`
+and `git lfs pull` before validating or loading the bundle. Source archives may contain
+LFS pointer files instead of the full CSVs; use an LFS-enabled checkout for these artifacts.
+
+
 Both example modes run `example/scripts/ensure-model-artifacts.sh`. It hashes the three raw CSVs and
 reuses this bundle only when every required output exists and its hash matches
 `default.manifest.json`. Otherwise it invokes:
@@ -81,15 +112,21 @@ python -m tool.build_default_artifacts \
   --model-root /path/to/model
 ```
 
+Generating new title vectors requires the rec-algorithm text dependencies and a model
+selected by `OPENREC_TEXT_EMBEDDING_MODEL` (default `Qwen/Qwen3-Embedding-0.6B`).
+Set `OPENREC_MODEL_CACHE` to the operator-managed model cache; model paths are not hardcoded.
+A verified v16-to-v17 migration only renames files and requires no model inference.
+
 The build uses the first 80% of event time as frozen feature history and the final 20% as rank
 labels. A clicked impression's preceding expose remains in feature history but is not treated as a
 negative training label. User ranking derives positives from users sharing positive item behaviour
 and balances them with non-cooccurring user pairs. Both sides use the persisted UserFeature space;
 the sidecar's `target_type` tells serving whether candidate vectors are Item or User vectors.
 Training restores the best temporal-validation checkpoint and Item LR/FM/LightGBM must pass AUC 0.70 before
-the bundle is atomically promoted. Recall
+the staged bundle is validated and its files are promoted. Recall
 generation produces `item_cf_i2i`, `content_i2i`, `user_cf_u2i`, semantic-hash `item_seq_emb`, hot, and new
-tables from the same inputs.
+tables, plus user CF/content/ALS neighbor tables, Qwen title vectors, ALS user vectors,
+and item/user text-search documents from the same inputs.
 
 Regenerating the default bundle from different raw inputs makes the old bundle stale according
 to its manifest. Routine cluster training does not overwrite these defaults or write back to Git.
@@ -129,7 +166,7 @@ The committed default bundle may predate additive catalog updates. Passing
 `feature/catalog/validate_catalog.py` validates its selected definitions; it does
 not mean the whole bundle is current. The distribution's
 `ensure-model-artifacts.sh` checks catalog provenance, build version and input
-hashes before reuse. Bootstrap build version 11 selects only features actually
+hashes before reuse. The current bootstrap builder selects only features actually
 materialized in the CSV snapshots and records that subset in model manifests;
 new session/context/commerce declarations are not silently trained as zeros.
 Regenerate defaults through that script instead of editing checkpoints or hashes.
@@ -147,3 +184,80 @@ rec-server's pre-selection `recallDiagnostics`, not by requiring all channel lab
 results. Keep the failing bundle for regression checks instead of editing weights or recall tables
 to force particular items into the result. The Java 21 migration changes application/engine
 runtimes, not the requirement to deploy each model together with its matching feature sidecars.
+
+## Recall naming contract
+
+CSV basenames and Airflow algorithm IDs use underscores. Airflow writes Hive tables as
+`openrec.recall_{algorithm}`. The publisher maps these to the graph's serving `tableName`:
+
+| CSV (under `recall/`) | Airflow algorithm | Graph tableName | Graph recallType |
+| --- | --- | --- | --- |
+| item/hot.csv | hot | hot | hot |
+| item/new.csv | new | new | new |
+| item/item_cf_i2i.csv | item_cf_i2i | item-cf-i2i | item_cf_i2i |
+| item/content_i2i.csv | content_i2i | content-i2i | content_i2i |
+| item/user_cf_u2i.csv | user_cf_u2i | user-cf-u2i | user_cf_u2i |
+| item/item_seq_emb.csv | item_seq_emb | item_seq_emb | item_seq_emb |
+| item/item_title_emb.csv | offline language vectors | — | — |
+| Qwen experiment cache (not in bootstrap) | experiment encoder | query_qwen_emb | query_qwen_emb |
+| item/text_search.csv | sparse | sparse | sparse |
+| user/user_cf_u2u.csv | user_cf_u2u | user-cf-u2u | user_cf_u2u |
+| user/content_u2u.csv | content_u2u | content-u2u | content_u2u |
+| user/user_als_u2u.csv | user_als_u2u | user-als-u2u | user_als_u2u |
+| user/user_als_emb.csv | offline only | — | — |
+| user/text_search.csv | offline only | — | — |
+
+Ordinary recall uses `openrec-recall-{tableName}-active`; sequence vectors use the per-scene
+`{scene}-item_seq_emb-index` alias. `query_qwen_emb` uses its own per-scene index and is not
+scheduled by the default daily DAG. Query and candidate vectors must share the exact model
+and preprocessing recipe. User embedding serving consumes precomputed U2U edges, despite
+the graph node being named EmbeddingNode.
+
+The item/user text document snapshots are named `text_search.csv` in build v17.
+The deployed item algorithm/channel/table retain the existing `sparse` name; user text
+search remains an offline artifact. The Qwen-only manifest is no longer emitted or required.
+
+## Manifest scope
+
+`default.manifest.json` schema v1 / build v18 covers all 40 generated files: 27 rank
+artifacts and 13 recall CSVs. It records the three raw-input hashes, feature catalog identity,
+feature cutoff and output hashes. Its `created_at` and `source` describe the original bundle
+build; `layout_migration` describes the subsequent layout migration. These are not new training dates.
+
+Each of the six rank manifests references its model and fitted feature file relative to its own
+model-family directory, and records feature identity, dimensions and evaluation results.
+The default manifest provides the checkpoint checksums. Recall artifacts currently share the
+bundle-level input/output hash contract; a complete per-algorithm parameter/provenance schema
+has not yet been added. No Qwen-specific manifest is required or generated.
+
+## Current recall inventory
+
+Counts below describe the build-18 bundle for `example/data/test`. Entity keys are scoped by
+`scene`; the same user may appear in multiple scenes. Vector values are finite and L2-normalized.
+
+| File under `recall/` | Schema | Rows | Vector dimension |
+| --- | --- | ---: | ---: |
+| item/content_i2i.csv | scene,left_item,right_item,score | 200000 | — |
+| item/item_cf_i2i.csv | scene,left_item,right_item,score | 5860 | — |
+| item/user_cf_u2i.csv | scene,user,item,score | 18913 | — |
+| item/hot.csv | scene,item,score | 5353 | — |
+| item/new.csv | scene,item,score | 6000 | — |
+| item/item_seq_emb.csv | scene,item,vector | 10000 | 10 |
+| item/item_title_emb.csv | scene,item,vector | 10000 | 1024 |
+| item/text_search.csv | scene,item,text | 10000 | — |
+| user/content_u2u.csv | scene,left_user,right_user,score | 530750 | — |
+| user/user_cf_u2u.csv | scene,left_user,right_user,score | 40550 | — |
+| user/user_als_u2u.csv | scene,left_user,right_user,score | 530750 | — |
+| user/user_als_emb.csv | scene,user,vector | 10615 | 10 |
+| user/text_search.csv | scene,user,text | 10615 | — |
+
+Item text-search documents concatenate `title/category/tags`; user documents concatenate
+`name/gender/country/city/tags`, omitting missing fields. User recall entities are scoped by
+positive interactions (`click`, `collect`, `buy`) in each scene. The local ALS edge scores
+are cosine similarities of the vectors in `user_als_emb.csv`. Neighbor tables contain no
+self-edges or duplicate scene/left/right keys. These are data integrity properties, not a
+new measurement of recommendation quality.
+
+Build v18 omits `item_content_emb.csv` from the default bundle to reduce download size.
+The generator can still produce it explicitly with `--include-content`; it is not a default
+required artifact. Only `item_title_emb.csv` is stored in Git LFS.

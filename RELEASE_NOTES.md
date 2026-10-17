@@ -2,6 +2,10 @@
 
 Released: 2026-10-05
 
+These notes describe the historical v0.1.0 release (bootstrap build 11). The working
+bundle is now build 17; see [Unreleased changes](CHANGELOG.md#unreleased--bootstrap-build-17)
+and the [current layout and contracts](README.md).
+
 Feature catalog and bootstrap artifacts. First coordinated OpenRec source release.
 
 ## Features
