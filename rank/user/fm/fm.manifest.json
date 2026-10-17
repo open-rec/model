@@ -1,7 +1,7 @@
 {
   "catalog_sha256": "7a29249c30dd1b5c0fcb5555a38012793d4f266d3041ca36629b1f729706fceb",
   "catalog_version": 18,
-  "created_at": "2026-09-28T01:24:07.622961+00:00",
+  "created_at": "2026-10-17T14:46:51.037711+00:00",
   "feature": "fm.features.json",
   "feature_cutoff_time": 1787098340,
   "feature_selection": {
@@ -101,14 +101,14 @@
     ]
   },
   "feature_set": "ranking-fm-v1",
-  "feature_sha256": "dafd96c4f5bb2f70a025560c22d209f5480e4f119d4578fd1fdd7af427476327",
+  "feature_sha256": "6ed397b148f165d8c5d957328e4fb4605b6b2980e6d5d7a94bcc45f94082daa2",
   "gate": {
     "min_auc": 0.0,
     "passed": true
   },
   "input_dim": 516,
   "metrics": {
-    "auc": 0.9993501403691947,
+    "auc": 0.9993568473053989,
     "factor_dim": 8,
     "feature_dim": 516,
     "positive_rate": 0.5,

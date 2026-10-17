@@ -1,7 +1,7 @@
 {
   "catalog_sha256": "7a29249c30dd1b5c0fcb5555a38012793d4f266d3041ca36629b1f729706fceb",
   "catalog_version": 18,
-  "created_at": "2026-09-28T01:23:43.372892+00:00",
+  "created_at": "2026-10-17T14:46:26.968827+00:00",
   "feature": "lr.features.json",
   "feature_cutoff_time": 1787098340,
   "feature_selection": {
@@ -101,14 +101,14 @@
     ]
   },
   "feature_set": "ranking-lr-v1",
-  "feature_sha256": "8b09282c077b9966fe40127ca7596303131cdbe40cef19805a9684399dd894a2",
+  "feature_sha256": "e93fbe5c6015b4d02484866bbddddb00c4739cc6fedde0a0a501c77e6e5700c5",
   "gate": {
     "min_auc": 0.0,
     "passed": true
   },
   "input_dim": 516,
   "metrics": {
-    "auc": 0.9994234007492709,
+    "auc": 0.9994157074989193,
     "feature_dim": 516,
     "positive_rate": 0.5,
     "samples": 81184

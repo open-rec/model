@@ -1,7 +1,7 @@
 {
   "catalog_sha256": "7a29249c30dd1b5c0fcb5555a38012793d4f266d3041ca36629b1f729706fceb",
   "catalog_version": 18,
-  "created_at": "2026-09-28T01:22:34.576390+00:00",
+  "created_at": "2026-10-17T14:45:20.549880+00:00",
   "feature": "lightgbm.features.json",
   "feature_cutoff_time": 1787098340,
   "feature_selection": {
@@ -103,7 +103,7 @@
     ]
   },
   "feature_set": "ranking-lightgbm-v1",
-  "feature_sha256": "f389f63b6f070c1b960fda6d2f77a6913bd07f82de7957712709330279fb2ebc",
+  "feature_sha256": "30b54417c802093aa323390822e138d95711e2d15a75147c92866bc1a7275807",
   "gate": {
     "min_auc": 0.7,
     "passed": true
