@@ -56,7 +56,7 @@ The vector CSVs use the following algorithms:
 - `recall/item/item_title_emb.csv`: real language-model vectors;
   the default is Qwen3-Embedding-0.6B (1024 dimensions). Query text must be encoded using
   the same model/revision and query instruction; the reusable Python encoder is available,
-  but it is not yet connected to the rec-server request path; there is no fixed query CSV. The previous duplicate
+  and rec-server can call a configured embedding endpoint online; there is no fixed query CSV. The previous duplicate
   hash-based item query CSV is removed.
 - `recall/user/user_als_emb.csv`: normalized 10-dimensional implicit-ALS user factors,
   distinct from `user_als_u2u.csv`, which contains precomputed similar-user edges.
@@ -64,11 +64,12 @@ The vector CSVs use the following algorithms:
 For sequence recall, the existing bootstrap `item_seq_emb.csv` still uses its legacy hash fallback;
 the Spark sequence job uses Word2Vec. Correcting that separate bootstrap fallback is deferred.
 
-The Music CRS experiment uses `query_qwen_emb`: frozen Qwen3-Embedding-8B query and track
-vectors, last-token pooling, L2 normalization and 4096 dimensions. Its graph node reads
-`{scene}-query_qwen_emb-index`, which must contain matching Qwen candidate vectors before
-sending Qwen requests. The bootstrap title vectors use Qwen3-Embedding-0.6B (1024D), so they cannot
-be mixed with the experiment's Qwen3-Embedding-8B (4096D) index. Historical experiment caches keep their
+The optional online `query_title_emb` channel uses Qwen3-Embedding-0.6B (1024D).
+With `EMBEDDING_ENABLED=true`, the shared initializer loads `item_title_emb.csv` into the global
+`query-title-emb-index` alias; rec-server encodes query text through vLLM.
+Startup first checks sampled online document vectors against this bundle.
+The historical Music CRS experiment uses Qwen3-Embedding-8B (4096D); those vectors
+must not be mixed with this bootstrap index. Historical experiment caches keep their
 upstream `query_embeddings.npy` filenames. `text_search.csv` files contain searchable documents.
 
 Layout build version 18 requires companion updates to rec-algorithm's builder/checker,
@@ -188,7 +189,7 @@ runtimes, not the requirement to deploy each model together with its matching fe
 ## Recall naming contract
 
 CSV basenames and Airflow algorithm IDs use underscores. Airflow writes Hive tables as
-`openrec.recall_{algorithm}`. The publisher maps these to the graph's serving `tableName`:
+`openrec.recall_{algorithm}` (user text search uses `openrec.recall_user_text_search`). The publisher maps these to the graph's serving `tableName`:
 
 | CSV (under `recall/`) | Airflow algorithm | Graph tableName | Graph recallType |
 | --- | --- | --- | --- |
@@ -197,25 +198,24 @@ CSV basenames and Airflow algorithm IDs use underscores. Airflow writes Hive tab
 | item/item_cf_i2i.csv | item_cf_i2i | item-cf-i2i | item_cf_i2i |
 | item/content_i2i.csv | content_i2i | content-i2i | content_i2i |
 | item/user_cf_u2i.csv | user_cf_u2i | user-cf-u2i | user_cf_u2i |
-| item/item_seq_emb.csv | item_seq_emb | item_seq_emb | item_seq_emb |
-| item/item_title_emb.csv | offline language vectors | — | — |
-| Qwen experiment cache (not in bootstrap) | experiment encoder | query_qwen_emb | query_qwen_emb |
-| item/text_search.csv | sparse | sparse | sparse |
+| item/item_seq_emb.csv | item_seq_emb | item-seq-emb | item_seq_emb |
+| item/item_title_emb.csv | query_title_emb | query-title-emb | query_title_emb |
+| item/text_search.csv | text_search | item-search | item_search |
 | user/user_cf_u2u.csv | user_cf_u2u | user-cf-u2u | user_cf_u2u |
 | user/content_u2u.csv | content_u2u | content-u2u | content_u2u |
 | user/user_als_u2u.csv | user_als_u2u | user-als-u2u | user_als_u2u |
 | user/user_als_emb.csv | offline only | — | — |
-| user/text_search.csv | offline only | — | — |
+| user/text_search.csv | text_search (target_type=user) | user-search | user_search |
 
 Ordinary recall uses `openrec-recall-{tableName}-active`; sequence vectors use the per-scene
-`{scene}-item_seq_emb-index` alias. `query_qwen_emb` uses its own per-scene index and is not
-scheduled by the default daily DAG. Query and candidate vectors must share the exact model
+`{scene}-item-seq-emb-index` alias. `query_title_emb` uses the global title-vector index and is
+scheduled by the default item daily DAG when the inference service is configured. Query and candidate vectors must share the exact model
 and preprocessing recipe. User embedding serving consumes precomputed U2U edges, despite
 the graph node being named EmbeddingNode.
 
 The item/user text document snapshots are named `text_search.csv` in build v17.
-The deployed item algorithm/channel/table retain the existing `sparse` name; user text
-search remains an offline artifact. The Qwen-only manifest is no longer emitted or required.
+The graphs use `item_search` and `user_search` channels, with separate `item-search` and `user-search`
+serving tables. Standalone and cluster initialize both tables from these model CSVs. The Qwen-only manifest is no longer emitted or required.
 
 ## Manifest scope
 
