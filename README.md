@@ -72,19 +72,20 @@ The historical Music CRS experiment uses Qwen3-Embedding-8B (4096D); those vecto
 must not be mixed with this bootstrap index. Historical experiment caches keep their
 upstream `query_embeddings.npy` filenames. `text_search.csv` files contain searchable documents.
 
-Layout build version 18 requires companion updates to rec-algorithm's builder/checker,
-example's initializer/startup checks, and rank-engine's Compose bootstrap paths. Existing verified
-v11/v12/v13/v14/v15/v16/v17 bundles can migrate without changing rank weights or evaluation records:
+Layout build version 19 requires the companion rec-algorithm builder/checker and
+example initializer. Validate an existing bundle before rebuilding:
 
 ```shell
 cd ../rec-algorithm
-.venv/bin/python -m tool.migrate_default_layout --data ../example/data/test --model-root ../model
+python -m tool.check_default_artifacts --data ../example/data/test --model-root ../model
+python -m tool.build_default_artifacts --data ../example/data/test --model-root ../model
 ```
 
-Migration validates input/output checksums, stages and validates the complete new bundle, then
-promotes it and removes only obsolete manifest-listed files. The already removed Qwen-only
-manifest is accepted as missing during migration and is dropped from the output inventory. Recall CSVs are generated from raw
-inputs; do not edit them or their checksums by hand. Full rebuilds use the same v18 layout.
+The builder reuses a valid v19 bundle. A v18 or stale bundle is rebuilt; verified title
+vectors are preserved when the item CSV and vector checksum match. Default builds do
+not load Qwen. Explicit language-vector generation requires the text dependencies,
+configured model weights, and `--include-text-embeddings`. Recall CSVs and checkpoints
+are generated artifacts; do not edit them or their checksums by hand.
 
 `feature/catalog/feature.catalog.json` is the implementation-independent source of truth for the
 logical features available to rank models. It defines stable meaning, time, identity, invalid-input,
@@ -220,10 +221,11 @@ serving tables. Standalone and cluster initialize both tables from these model C
 
 ## Manifest scope
 
-`default.manifest.json` schema v1 / build v18 covers all 40 generated files: 27 rank
-artifacts and 13 recall CSVs. It records the three raw-input hashes, feature catalog identity,
-feature cutoff and output hashes. Its `created_at` and `source` describe the original bundle
-build; `layout_migration` describes the subsequent layout migration. These are not new training dates.
+`default.manifest.json` schema v1 / build v19 covers 39 required files: 27 rank
+artifacts and 12 recall CSVs. The current checked-in bundle includes optional
+`item_title_emb.csv`, so its manifest checksums 40 outputs. It records raw-input hashes,
+feature catalog identity, feature cutoff and output hashes. `created_at` and `source`
+describe the bundle build; older migrated bundles may additionally record `layout_migration`.
 
 Each of the six rank manifests references its model and fitted feature file relative to its own
 model-family directory, and records feature identity, dimensions and evaluation results.
@@ -233,7 +235,7 @@ has not yet been added. No Qwen-specific manifest is required or generated.
 
 ## Current recall inventory
 
-Counts below describe the build-18 bundle for `example/data/test`. Entity keys are scoped by
+Counts below describe the current build-19 bundle for `example/data/test`. Entity keys are scoped by
 `scene`; the same user may appear in multiple scenes. Vector values are finite and L2-normalized.
 
 | File under `recall/` | Schema | Rows | Vector dimension |
@@ -259,6 +261,6 @@ are cosine similarities of the vectors in `user_als_emb.csv`. Neighbor tables co
 self-edges or duplicate scene/left/right keys. These are data integrity properties, not a
 new measurement of recommendation quality.
 
-Build v18 omits `item_content_emb.csv` from the default bundle to reduce download size.
+Since build v18, the bundle omits `item_content_emb.csv` from the default bundle to reduce download size.
 The generator can still produce it explicitly with `--include-content`; it is not a default
 required artifact. Only `item_title_emb.csv` is stored in Git LFS.
