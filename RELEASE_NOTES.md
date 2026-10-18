@@ -1,29 +1,21 @@
-# model v0.1.0
+# model v0.2.0
 
-Released: 2026-10-05
+Released: 2026-10-18
 
-These notes describe the historical v0.1.0 release (bootstrap build 11). The working
-bundle is now build 19; see [Unreleased changes](CHANGELOG.md#unreleased--bootstrap-build-19)
-and the [current layout and contracts](README.md).
+Part of the coordinated OpenRec v0.2.0 source release.
 
-Feature catalog and bootstrap artifacts. First coordinated OpenRec source release.
+## Changes since v0.1.0
 
-## Features
-
-- Canonical feature catalog version 18, including identity, time, invalid-input and materialization semantics.
-- Catalog validation and checks for packaged copies in rec-algorithm and data-processor.
-- Separate item/user LR, FM and LightGBM bootstrap artifacts with fitted feature spaces.
-- Default collaborative/content/vector/hot/new recall tables.
-- Build-version-11 provenance with input/output hashes and selected feature definitions.
+- Publish bootstrap build 19 with rank/{item,user}/{lr,fm,lightgbm} and recall/{item,user} directories.
+- Retain 40 checksummed outputs, including verified optional title vectors; CPU-only generation produces 39 artifacts.
+- Align ALS vectors/edges and text-search names; preserve checkpoints and fitted feature sidecars together.
 
 ## Installation and compatibility
 
-Deploy each checkpoint with its matching fitted sidecar. The distribution may reuse this bundle only after input, catalog and output validation; otherwise it generates a new bundle from committed sample data.
+This release does not regenerate or modify model weights, data tables or checksums. Use the matching rec-algorithm v0.2.0 builder/checker and preserve fitted feature sidecars. Runtime training releases remain separate from this bootstrap bundle.
 
-Runtime training releases are stored separately and do not overwrite these bootstrap artifacts. Fixed input data and split boundaries do not guarantee byte-identical PyTorch training output. Do not use experimental or obsolete scratch checkpoints as bootstrap releases.
+See the [distribution upgrade and rollback instructions](https://github.com/open-rec/openrec/blob/v0.2.0/RELEASE_NOTES.md) for the complete compatible component set and persisted configuration migrations.
 
-## Validation and known boundaries
+## Validation and publication
 
-See this repository's README for build/test commands and deployment requirements. The coordinated release's [validation record](https://github.com/open-rec/openrec/blob/v0.1.0/release/VALIDATION.md) distinguishes checks executed for this release from historical integration evidence.
-
-This initial release establishes a versioned source baseline. Source archives and checksums are published; external package registries and container registries are not populated by the source-release workflow. Upgrade the complete compatible distribution, retain data/checkpoints/artifacts, and preserve prior component refs for rollback.
+The [validation record](https://github.com/open-rec/openrec/blob/v0.2.0/release/VALIDATION.md) distinguishes release checks from maintainer-reported prior CI and integration results. GitHub Actions publishes source archives and SHA-256 checksums; Maven Central, PyPI and versioned container registries are not populated by this workflow.

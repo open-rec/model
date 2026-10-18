@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — bootstrap build 19
+## 0.2.0 — 2026-10-18 (bootstrap build 19)
 
 - Default CPU builds contain 39 artifacts: 27 rank files and 12 recall tables.
 - The checked-in bundle also retains verified `item_title_emb.csv`, for 40 checksummed outputs.
@@ -17,7 +17,7 @@
 
 ## 0.1.0 — 2026-10-05
 
-First coordinated release. See [release notes](RELEASE_NOTES.md) for features, compatibility and known limitations.
+First coordinated release. See [release notes](https://github.com/open-rec/model/blob/v0.1.0/RELEASE_NOTES.md) for features, compatibility and known limitations.
 
 Bootstrap v18 removes optional `item_content_emb.csv` from the default bundle and retains
 `item_title_emb.csv`. The generator supports `--include-content` for explicit offline generation.
