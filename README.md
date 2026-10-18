@@ -7,7 +7,7 @@
 ![Models](https://img.shields.io/badge/rank_artifacts-PyTorch%20%2B%20LightGBM-EE4C2C)
 
 This repository is the deployable output cache for OpenRec. Raw inputs belong in
-`example/data/<dataset>/{user,item,event}.csv`; recall tables, fitted feature spaces, entity feature
+`openrec/data/<dataset>/{user,item,event}.csv`; recall tables, fitted feature spaces, entity feature
 snapshots and rank checkpoints belong here.
 
 Treat deployable model files as generated, versioned artifacts. Do not hand-edit checkpoints,
@@ -48,7 +48,7 @@ recall/user/
 Each `rank/{target_type}/{model_type}` directory is a self-contained default rank release.
 Its fitted sidecar defines column order, vocabularies, scaling and input dimension. Feature CSVs
 hold actual entity values; identical default snapshots are copied into each model release so future
-model-specific snapshots can evolve independently. `InitStandalone` uses the item LR snapshots.
+model-specific snapshots can evolve independently. `RedisFeatureTask` uses the item LR snapshots.
 
 Recall directories are classified by **candidate entity**, not trigger type.
 The vector CSVs use the following algorithms:
@@ -77,8 +77,8 @@ example initializer. Validate an existing bundle before rebuilding:
 
 ```shell
 cd ../rec-algorithm
-python -m tool.check_default_artifacts --data ../example/data/test --model-root ../model
-python -m tool.build_default_artifacts --data ../example/data/test --model-root ../model
+python -m tool.check_default_artifacts --data ../openrec/data/test --model-root ../model
+python -m tool.build_default_artifacts --data ../openrec/data/test --model-root ../model
 ```
 
 The builder reuses a valid v19 bundle. A v18 or stale bundle is rebuilt; verified title
@@ -104,13 +104,13 @@ and `git lfs pull` before validating or loading the bundle. Source archives may 
 LFS pointer files instead of the full CSVs; use an LFS-enabled checkout for these artifacts.
 
 
-Both example modes run `example/scripts/ensure-model-artifacts.sh`. It hashes the three raw CSVs and
+Both example modes run `openrec/init/tools/ensure-model-artifacts.sh`. It hashes the three raw CSVs and
 reuses this bundle only when every required output exists and its hash matches
 `default.manifest.json`. Otherwise it invokes:
 
 ```shell
 python -m tool.build_default_artifacts \
-  --data /path/to/example/data/test \
+  --data /path/to/openrec/data/test \
   --model-root /path/to/model
 ```
 
@@ -176,7 +176,7 @@ Regenerate defaults through that script instead of editing checkpoints or hashes
 ## Reproducing startup acceptance
 
 The distribution manifest does not check out this repository in CI: fresh runners generate the
-bootstrap bundle from `example/data/test`, whereas local startup may reuse a validated bundle.
+bootstrap bundle from `openrec/data/test`, whereas local startup may reuse a validated bundle.
 Matching input hashes does not imply that separately trained LR/FM checkpoints are byte-identical;
 the default builder fixes the validation split but does not fix all PyTorch training randomness.
 Record the bundle's output hashes when comparing local and CI recommendations.
@@ -235,7 +235,7 @@ has not yet been added. No Qwen-specific manifest is required or generated.
 
 ## Current recall inventory
 
-Counts below describe the current build-19 bundle for `example/data/test`. Entity keys are scoped by
+Counts below describe the current build-19 bundle for `openrec/data/test`. Entity keys are scoped by
 `scene`; the same user may appear in multiple scenes. Vector values are finite and L2-normalized.
 
 | File under `recall/` | Schema | Rows | Vector dimension |
